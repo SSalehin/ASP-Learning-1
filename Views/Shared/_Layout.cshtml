@@ -1,0 +1,136 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewBag.Title - My ASP.NET Application</title>
+    @Styles.Render("~/Content/css")
+    @Scripts.Render("~/bundles/modernizr")
+    <style>
+        .side-button{
+            background-color:transparent;
+            width: 100px;
+            height: 30px;
+            border-width: 1px;
+        }
+    </style>
+</head>
+<body>
+    <script>
+        var TOPICS;
+        var USERS;
+        var CURRENT_USER;
+    </script>
+    <div class="navbar navbar-inverse navbar-fixed-top">
+        <div class="container">
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                @Html.ActionLink("Application name", "Index", "Home", new { area = "" }, new { @class = "navbar-brand" })
+            </div>
+
+            <div class="navbar-collapse collapse">
+                @Html.Partial("_LoginPartial")
+            </div>
+        </div>
+    </div>
+    <div id="sidebar" style="float:left;margin:20px">
+        <ul>
+            <li>
+                <button class="side-button" id="users" onclick="showUsers(USERS)">Users</button>
+            </li>
+            <li>
+                <button class="side-button" id="topics" onclick="showTopics(TOPICS)">Topics</button>
+            </li>
+            <li>
+                <button class="side-button" id="post" onclick="showAllPosts()">Posts</button>
+            </li>
+            <li>
+                <button class="side-button" id="create-post" onclick="createPostForm(event)">Create Post</button>
+            </li>
+        </ul>
+    </div>
+
+    <div id="view-panel" style="float:left; margin: 10px"></div>
+    
+    <div id="debug"></div>
+        
+        
+    <div class="container body-content">@RenderBody()</div>
+
+    @Scripts.Render("~/bundles/jquery")
+    @Scripts.Render("~/bundles/bootstrap")
+    @Scripts.Render("~/bundles/custom")
+    @RenderSection("scripts", required: false)
+</body>
+</html>
+
+<script>
+    $("document").ready(function () {
+        getUsers(function (data) {
+            USERS = data;
+            console.log(USERS);
+        });
+        getTopics(function (data) {
+            TOPICS = data;
+            console.log(TOPICS);
+        })
+        //$("#post").click();
+    });
+
+
+    function getUsers(whenDone) {
+        $.ajax({
+            url: "/API/customers",
+            method: "GET",
+            success: function (data) {
+                USERS = data;
+                whenDone(data);
+            }
+        })
+    }
+    function getTopics(whenDone) {
+        $.ajax({
+            url: "/API/topics",
+            method: "GET",
+            success: whenDone
+        })
+    }
+    function createPost(_content, _topicId) {
+        let _data =
+            _content
+            .replace('~', '#')
+            .trim() + "~" + _topicId.toString().replace('~', ' ')
+            .trim();
+
+        alert("Posting: " + JSON.stringify(_data));
+        $.post("/API/posts", _data, null)
+    }
+    function getPosts(whenDone) {
+        $.ajax({
+            url: "/API/posts",
+            method: "GET",
+            success: whenDone
+        })
+    }
+    function getPostByUserEmail(email, whenDone) {
+        email = email.replace(".", "_");
+        $.ajax({
+            url: "/API/posts/user?userEmail=" + email,
+            method: "GET",
+            success: whenDone
+        })
+    }
+    function getPostByTopic(topicId, whenDone) {
+        //alert("Requesting topic:" + topicId);
+        $.ajax({
+            url: "/API/posts/topic?topicId=" + topicId,
+            method: "GET",
+            success: whenDone
+        })
+    }
+
+</script>
